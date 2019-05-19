@@ -1,0 +1,48 @@
+version: "3"
+services:
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    ports:
+      - 80:80
+      - 443:443
+    links:
+      - php
+    depends_on:
+      - php
+    volumes:
+      - ./sssignal2-2/public:/home/mizzsig/sssignal2-2/public
+
+  php:
+    build: ./php
+    container_name: php
+    command: supervisord -c /etc/supervisord.conf
+    links:
+      - mongodb
+      - memcached
+    volumes:
+      - ./sssignal2-2:/home/mizzsig/sssignal2-2
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    volumes:
+      - mongodb-data:/data/db
+
+  mongodb-express:
+    image: mongo-express
+    container_name: mongodb-express
+    links:
+      - mongodb
+    ports:
+      - 8081:8081
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+
+  memcached:
+    image: memcached:1.5.12-alpine
+    container_name: memcached
+    
+volumes:
+  mongodb-data:
+    driver: local
